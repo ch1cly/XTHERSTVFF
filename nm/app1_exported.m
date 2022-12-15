@@ -45,7 +45,7 @@ classdef app1_exported < matlab.apps.AppBase
         k = real(2);
         c = real(0.01);
         t = real(1);
-        m = real(1); %
+        m = int64(1); %
         u0 = real(0.01);
         du0 = real(0);
         % Description
@@ -80,14 +80,16 @@ classdef app1_exported < matlab.apps.AppBase
             end
             function drawW(f)
                 [X,Y] = meshgrid(0:0.05:app.k,0:0.05:1);
-                w = f(end,1).*sin(pi.*app.m.*X./app.k).*sin(pi.*Y./app.k);
+                
+                w = f(end,1).*sin((pi*app.m/app.k).*X).*sin((pi).*Y);
                 p = surf(app.UIAxes2,X,Y,w);
+                zlim(app.UIAxes2,[-10 10]);
                 legend(app.UIAxes2,p,{'w',})
                 
             end
             app.sync;
             [t1,f] = app.solveODE;
-            
+            f = abs(f);
             app.TZkritEditField.Value = app.findZkrit(t1,f);
             app.CurFvalEditField.Value = f(end,1);
             app.CurTvalEditField.Value = t1(end);
@@ -142,7 +144,7 @@ classdef app1_exported < matlab.apps.AppBase
                 f2 = - lamda(t) * x(1) /  app.c;
                 s = [f1; f2];
             end
-            [t1,f] = ode45(@sys,[0 app.t],[app.u0 app.du0]);     
+            [t1,f] = ode45(@sys,[0 app.t],[app.u0 app.du0]); 
         end
         
         function t = findZkrit(app,t1,f)
@@ -254,9 +256,10 @@ classdef app1_exported < matlab.apps.AppBase
         function minimizeMButtonPushed(app, event)
             curM = app.m;
             tf = app.TZkritEditField.Value;
-            for i = 0:0.1:20
+            for i = 0:20
                 app.m = i;
                 [t1,f] = app.solveODE;
+                f = abs(f);
                 tt = app.findZkrit(t1,f);
                 if tf < 2 && tt > 2
                     tf = tt;
@@ -385,10 +388,13 @@ classdef app1_exported < matlab.apps.AppBase
 
             % Create MSlider
             app.MSlider = uislider(app.UIFigure);
-            app.MSlider.Limits = [0.1 20];
+            app.MSlider.Limits = [0 20];
+            app.MSlider.MajorTicks = [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20];
+            app.MSlider.MajorTickLabels = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'};
             app.MSlider.ValueChangingFcn = createCallbackFcn(app, @MSliderValueChanging, true);
+            app.MSlider.MinorTicks = [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20];
             app.MSlider.Position = [46 60 661 3];
-            app.MSlider.Value = 0.1;
+            app.MSlider.Value = 1;
 
             % Create MFieldEditFieldLabel
             app.MFieldEditFieldLabel = uilabel(app.UIFigure);
